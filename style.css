@@ -1,0 +1,209 @@
+:root {
+  --sidebar-width: 260px;
+  --text-color: #000;
+  --bg-color: #fff;
+  --sidebar-bg: #f5f5f5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-color: #fff;
+    --bg-color: #121212;
+    --sidebar-bg: #1e1e1e;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* --- Sidebar --- */
+#sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+#sidebar.closed {
+  width: 70px;
+}
+#logo-area {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+}
+#logo-img {
+  width: 40px;
+  height: 40px;
+  margin-right: 8px;
+}
+#sidebar nav {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+}
+.menu-item {
+  background: none;
+  border: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+}
+.menu-item:hover, .menu-item.active {
+  background: rgba(100, 100, 100, 0.2);
+}
+
+/* --- Social icons area (below nav) --- */
+#social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 12px; /* espacio entre iconos */
+  padding: 12px;
+  align-items: center;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+.social-link img {
+  width: 30px; /* tamaño solicitado */
+  height: 30px;
+  object-fit: contain;
+  display: block;
+  filter: none;
+  opacity: 0.95;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+.social-link:hover img {
+  transform: translateY(-3px);
+  opacity: 1;
+}
+
+/* admin: hide social edit section initially - JS will control visibility via admin-panel */
+#admin-social-links {
+  display: block;
+}
+
+/* --- Admin button --- */
+#admin-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* --- Main --- */
+main {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+#search {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+}
+.topic {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.topic h4 {
+  margin: 0;
+}
+.link-btn {
+  margin: 5px 5px 0 0;
+  display: inline-block;
+  padding: 6px 10px;
+  background: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.link-btn:hover {
+  background: #0056b3;
+}
+footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+/* --- Modal --- */
+#admin-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#admin-modal.hidden {
+  display: none;
+}
+.modal-content {
+  background: var(--bg-color);
+  color: var(--text-color);
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  position: relative;
+}
+.close-modal {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Admin social edit rows */
+.social-edit-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+.social-edit-row label {
+  width: 90px;
+  font-size: 13px;
+}
+.social-edit-row input {
+  flex: 1;
+  padding: 6px;
+}
+.save-social-btn, .clear-social-btn {
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.save-social-btn {
+  background: #28a745;
+  color: white;
+}
+.clear-social-btn {
+  background: #dc3545;
+  color: white;
+}
