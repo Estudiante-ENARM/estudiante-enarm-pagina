@@ -36,10 +36,34 @@ const deleteTemaBtn = document.getElementById('delete-tema');
 const exportBackupBtn = document.getElementById('export-backup');
 const closeModalBtn = document.querySelector('.close-modal');
 
+const socialIconsArea = document.getElementById('social-icons');
+const socialWhatsappA = document.getElementById('social-whatsapp');
+const socialTiktokA = document.getElementById('social-tiktok');
+const socialInstagramA = document.getElementById('social-instagram');
+const socialTelegramA = document.getElementById('social-telegram');
+
+// Admin social inputs/buttons
+const adminSocialSection = document.getElementById('admin-social-links');
+const inputWhatsapp = document.getElementById('input-whatsapp');
+const inputTiktok = document.getElementById('input-tiktok');
+const inputInstagram = document.getElementById('input-instagram');
+const inputTelegram = document.getElementById('input-telegram');
+const saveWhatsappBtn = document.getElementById('save-whatsapp');
+const saveTiktokBtn = document.getElementById('save-tiktok');
+const saveInstagramBtn = document.getElementById('save-instagram');
+const saveTelegramBtn = document.getElementById('save-telegram');
+const clearWhatsappBtn = document.getElementById('clear-whatsapp');
+const clearTiktokBtn = document.getElementById('clear-tiktok');
+const clearInstagramBtn = document.getElementById('clear-instagram');
+const clearTelegramBtn = document.getElementById('clear-telegram');
+
 let editingDocId = null;
 let currentFilterSpecialty = 'Todos';
 let allTopics = [];
 let currentUserUid = null;
+
+// Firestore ref for social links (single doc 'config' in collection 'social_links')
+const socialDocRef = db.collection('social_links').doc('config');
 
 // --- Logo modo claro/oscuro ---
 function updateLogoForScheme(){
@@ -65,21 +89,73 @@ menuItems.forEach(btn => {
 // --- Búsqueda ---
 searchInput.addEventListener('input', renderTopics);
 
-// --- Firestore realtime ---
+// --- Firestore realtime: temas ---
 db.collection('temas').orderBy('title').onSnapshot(snapshot => {
   allTopics = [];
   snapshot.forEach(doc => allTopics.push({ id: doc.id, ...doc.data() }));
   renderTopics();
 });
 
+// --- Firestore realtime: social links (to keep icons updated live) ---
+socialDocRef.onSnapshot(doc => {
+  const data = doc.exists ? doc.data() : {};
+  // default blank if not set
+  const whatsapp = data.whatsapp || '';
+  const tiktok = data.tiktok || '';
+  const instagram = data.instagram || '';
+  const telegram = data.telegram || '';
+
+  // update anchors: if empty, keep href="#" and opacity lower
+  updateSocialAnchor(socialWhatsappA, whatsapp);
+  updateSocialAnchor(socialTiktokA, tiktok);
+  updateSocialAnchor(socialInstagramA, instagram);
+  updateSocialAnchor(socialTelegramA, telegram);
+
+  // If admin panel visible, populate inputs
+  if(currentUserUid){
+    inputWhatsapp.value = whatsapp;
+    inputTiktok.value = tiktok;
+    inputInstagram.value = instagram;
+    inputTelegram.value = telegram;
+  }
+}, err => {
+  console.error('Error listening social links:', err);
+});
+
+function updateSocialAnchor(aEl, url){
+  if(!aEl) return;
+  if(url && url.trim() !== ''){
+    aEl.href = url;
+    aEl.setAttribute('aria-disabled','false');
+    aEl.style.opacity = '1';
+    aEl.style.pointerEvents = 'auto';
+  } else {
+    aEl.href = '#';
+    aEl.setAttribute('aria-disabled','true');
+    aEl.style.opacity = '0.5';
+    aEl.style.pointerEvents = 'none';
+  }
+}
+
 function renderTopics(){
   const q = searchInput.value.trim().toLowerCase();
   topicsContainer.innerHTML = '';
+
   const filtered = allTopics.filter(t => {
-    const matchesSpecialty = currentFilterSpecialty === 'Todos' || t.specialty === currentFilterSpecialty;
-    const matchesQuery = q === '' || t.title.toLowerCase().includes(q);
-    return matchesSpecialty && matchesQuery;
+    // si filtro por "Todos", EXCLUIR los de "Acceso gratuito limitado"
+    if(currentFilterSpecialty === 'Todos'){
+      if(t.specialty === 'Acceso gratuito limitado') return false;
+      // else allow any specialty
+      const matchesQuery = q === '' || (t.title && t.title.toLowerCase().includes(q));
+      return matchesQuery;
+    } else {
+      // filtro por otra especialidad (incluye Acceso gratuito limitado)
+      const matchesSpecialty = t.specialty === currentFilterSpecialty;
+      const matchesQuery = q === '' || (t.title && t.title.toLowerCase().includes(q));
+      return matchesSpecialty && matchesQuery;
+    }
   });
+
   if(filtered.length === 0){
     topicsContainer.innerHTML = '<p>No hay resultados</p>';
     return;
@@ -137,6 +213,14 @@ adminLoginBtn.addEventListener('click', async () => {
     adminStatus.textContent = 'Autenticado ✅';
     adminPanel.classList.remove('hidden');
     document.getElementById('admin-auth').classList.add('hidden');
+
+    // populate social inputs after login: fetch once (onSnapshot already populates, but ensure inputs visible)
+    const doc = await socialDocRef.get();
+    const data = doc.exists ? doc.data() : {};
+    inputWhatsapp.value = data.whatsapp || '';
+    inputTiktok.value = data.tiktok || '';
+    inputInstagram.value = data.instagram || '';
+    inputTelegram.value = data.telegram || '';
   } catch(e){ adminStatus.textContent = 'Error: ' + e.message; }
 });
 
@@ -215,6 +299,85 @@ function resetForm(){
   deleteTemaBtn.classList.add('hidden');
   adminModal.classList.add('hidden');
 }
+
+// --- Social links admin handlers ---
+// Helper: save object merge to social doc
+async function saveSocialLinksObject(obj){
+  try {
+    await socialDocRef.set(obj, { merge: true });
+    alert('Enlace(s) guardado(s)');
+  } catch(e){
+    alert('Error guardando enlace(s): ' + e.message);
+  }
+}
+
+// Individual save buttons
+saveWhatsappBtn.addEventListener('click', ()=> {
+  const v = inputWhatsapp.value.trim();
+  saveSocialLinksObject({ whatsapp: v });
+});
+saveTiktokBtn.addEventListener('click', ()=> {
+  const v = inputTiktok.value.trim();
+  saveSocialLinksObject({ tiktok: v });
+});
+saveInstagramBtn.addEventListener('click', ()=> {
+  const v = inputInstagram.value.trim();
+  saveSocialLinksObject({ instagram: v });
+});
+saveTelegramBtn.addEventListener('click', ()=> {
+  const v = inputTelegram.value.trim();
+  saveSocialLinksObject({ telegram: v });
+});
+
+// Clear / delete individual links (set to empty string)
+clearWhatsappBtn.addEventListener('click', async ()=> {
+  if(!confirm('Eliminar enlace de WhatsApp?')) return;
+  try {
+    await socialDocRef.update({ whatsapp: firebase.firestore.FieldValue.delete() });
+    inputWhatsapp.value = '';
+    alert('Enlace eliminado');
+  } catch(e){ alert('Error: ' + e.message); }
+});
+clearTiktokBtn.addEventListener('click', async ()=> {
+  if(!confirm('Eliminar enlace de TikTok?')) return;
+  try {
+    await socialDocRef.update({ tiktok: firebase.firestore.FieldValue.delete() });
+    inputTiktok.value = '';
+    alert('Enlace eliminado');
+  } catch(e){ alert('Error: ' + e.message); }
+});
+clearInstagramBtn.addEventListener('click', async ()=> {
+  if(!confirm('Eliminar enlace de Instagram?')) return;
+  try {
+    await socialDocRef.update({ instagram: firebase.firestore.FieldValue.delete() });
+    inputInstagram.value = '';
+    alert('Enlace eliminado');
+  } catch(e){ alert('Error: ' + e.message); }
+});
+clearTelegramBtn.addEventListener('click', async ()=> {
+  if(!confirm('Eliminar enlace de Telegram?')) return;
+  try {
+    await socialDocRef.update({ telegram: firebase.firestore.FieldValue.delete() });
+    inputTelegram.value = '';
+    alert('Enlace eliminado');
+  } catch(e){ alert('Error: ' + e.message); }
+});
+
+// --- Export backup (existing button) ---
+exportBackupBtn.addEventListener('click', async ()=> {
+  try {
+    const snap = await db.collection('temas').get();
+    const arr = [];
+    snap.forEach(d => arr.push({ id: d.id, ...d.data() }));
+    const blob = new Blob([JSON.stringify(arr, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'temas-backup.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e){ alert('Error exportando: ' + e.message); }
+});
 
 // --- Countdown ---
 function updateCountdown(){

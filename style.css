@@ -48,7 +48,7 @@ body {
   margin-right: 8px;
 }
 #sidebar nav {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -66,6 +66,38 @@ body {
 .menu-item:hover, .menu-item.active {
   background: rgba(100, 100, 100, 0.2);
 }
+
+/* --- Social icons area (below nav) --- */
+#social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 12px; /* espacio entre iconos */
+  padding: 12px;
+  align-items: center;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+.social-link img {
+  width: 30px; /* tamaño solicitado */
+  height: 30px;
+  object-fit: contain;
+  display: block;
+  filter: none;
+  opacity: 0.95;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+.social-link:hover img {
+  transform: translateY(-3px);
+  opacity: 1;
+}
+
+/* admin: hide social edit section initially - JS will control visibility via admin-panel */
+#admin-social-links {
+  display: block;
+}
+
+/* --- Admin button --- */
 #admin-btn {
   background: #007bff;
   color: white;
@@ -132,7 +164,7 @@ footer {
   padding: 20px;
   border-radius: 10px;
   width: 90%;
-  max-width: 400px;
+  max-width: 600px;
   position: relative;
 }
 .close-modal {
@@ -144,4 +176,34 @@ footer {
   color: var(--text-color);
   font-size: 20px;
   cursor: pointer;
+}
+
+/* Admin social edit rows */
+.social-edit-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+.social-edit-row label {
+  width: 90px;
+  font-size: 13px;
+}
+.social-edit-row input {
+  flex: 1;
+  padding: 6px;
+}
+.save-social-btn, .clear-social-btn {
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.save-social-btn {
+  background: #28a745;
+  color: white;
+}
+.clear-social-btn {
+  background: #dc3545;
+  color: white;
 }
