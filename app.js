@@ -64,11 +64,10 @@ recentChangesList.id = "recent-changes";
 recentChangesList.style.padding = "12px";
 recentChangesList.style.fontSize = "13px";
 recentChangesList.style.color = "var(--muted)";
-recentChangesList.innerHTML = "<strong>Últimos cambios:</strong><br /><span>Cargando...</span>";
 
 // Insertar encima de iconos sociales
 const socialIcons = document.getElementById('social-icons');
-socialIcons.parentNode.insertBefore(recentChangesList, socialIcons);
+socialIcons.parentNode.insertBefore(recentChangesList, socialIcons.nextSibling);
 
 // Mobile
 const menuBtn = document.getElementById('menu-btn');
@@ -362,6 +361,13 @@ temaForm.addEventListener("submit", async e => {
     return;
   }
 
+const social = {
+  whatsapp: document.getElementById("tema-social-whatsapp").value.trim(),
+  tiktok: document.getElementById("tema-social-tiktok").value.trim(),
+  instagram: document.getElementById("tema-social-instagram").value.trim(),
+  telegram: document.getElementById("tema-social-telegram").value.trim()
+};
+
   const title = temaTitle.value.trim();
   const specialty = temaSpecialty.value;
   const links = [];
@@ -380,6 +386,25 @@ temaForm.addEventListener("submit", async e => {
   }
 
   try {
+if(editingDocId){
+  await db.collection("temas").doc(editingDocId).update({
+    title, specialty, links, social
+  });
+  await changesRef.add({
+    action: `Editado: ${title}`,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+} else {
+  await db.collection("temas").add({
+    title, specialty, links, social,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  await changesRef.add({
+    action: `Agregado: ${title}`,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
     if(editingDocId){
       await db.collection("temas").doc(editingDocId).update({
         title, specialty, links
@@ -425,6 +450,11 @@ function openEditorWithTopic(t){
 
   temaTitle.value = t.title;
   temaSpecialty.value = t.specialty;
+
+document.getElementById("tema-social-whatsapp").value = t.social?.whatsapp || "";
+document.getElementById("tema-social-tiktok").value   = t.social?.tiktok || "";
+document.getElementById("tema-social-instagram").value= t.social?.instagram || "";
+document.getElementById("tema-social-telegram").value = t.social?.telegram || "";
 
   linksArea.innerHTML = "";
   (t.links || []).forEach(l => {
