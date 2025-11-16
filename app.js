@@ -65,9 +65,14 @@ recentChangesList.style.padding = "12px";
 recentChangesList.style.fontSize = "13px";
 recentChangesList.style.color = "var(--muted)";
 
-// Insertar encima de iconos sociales
+// Insertar (si existe social-icons). Si no existe, añadir al final del sidebar.
 const socialIcons = document.getElementById('social-icons');
-socialIcons.parentNode.insertBefore(recentChangesList, socialIcons.nextSibling);
+if (socialIcons && socialIcons.parentNode) {
+  // Insert AFTER socialIcons so social icons are above recent changes
+  socialIcons.parentNode.insertBefore(recentChangesList, socialIcons.nextSibling);
+} else if (sidebar) {
+  sidebar.appendChild(recentChangesList);
+}
 
 // Mobile
 const menuBtn = document.getElementById('menu-btn');
@@ -84,6 +89,24 @@ let currentUserUid = null;
 const socialDocRef = db.collection('social_links').doc('config');
 const changesRef = db.collection('changes');
 
+// ---------- Helpers ----------
+function safeGetValue(id){
+  const el = document.getElementById(id);
+  return el ? String(el.value || '').trim() : '';
+}
+function timeAgo(d){
+  if(!d) return '';
+  const diff = Date.now() - d.getTime();
+  const s = Math.floor(diff/1000);
+  if(s < 60) return `${s}s`;
+  const m = Math.floor(s/60);
+  if(m < 60) return `${m}m`;
+  const h = Math.floor(m/60);
+  if(h < 24) return `${h}h`;
+  const days = Math.floor(h/24);
+  return `${days}d`;
+}
+
 // --- MODO OSCURO / CLARO ---
 function updateLogoForScheme(){
   const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -93,8 +116,9 @@ function updateLogoForScheme(){
   if(mobileLogo)  mobileLogo.src  = dark ? 'logo-dark.png' : 'logo-light.png';
 }
 updateLogoForScheme();
-window.matchMedia('(prefers-color-scheme: dark)')
-  .addEventListener('change', updateLogoForScheme);
+if(window.matchMedia) {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateLogoForScheme);
+}
 
 // --- SIDEBAR DESKTOP ---
 logoArea?.addEventListener('click', ()=> {
@@ -104,12 +128,12 @@ logoArea?.addEventListener('click', ()=> {
 // --- MOBILE DRAWER ---
 function openMobileDrawer(){
   sidebar.classList.add('open-mobile');
-  mobileOverlay.classList.remove('hidden');
+  mobileOverlay?.classList.remove('hidden');
   document.body.style.overflow = "hidden";
 }
 function closeMobileDrawer(){
   sidebar.classList.remove('open-mobile');
-  mobileOverlay.classList.add('hidden');
+  mobileOverlay?.classList.add('hidden');
   document.body.style.overflow = "";
 }
 
@@ -143,13 +167,15 @@ menuItems.forEach(btn => {
 });
 
 // --- BÚSQUEDA ---
-searchInput.addEventListener('input', renderTopics);
+searchInput?.addEventListener('input', renderTopics);
 
 // --- REALTIME TEMAS ---
 db.collection('temas')
   .orderBy('title')
   .onSnapshot(snapshot => {
     allTopics = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // ensure alphabetical order defensively
+    allTopics.sort((a,b)=> (a.title||'').localeCompare(b.title||'', 'es', {sensitivity:'base'}));
     renderTopics();
     updateCounters();
   }, err => console.error("Error temas realtime:", err));
@@ -164,10 +190,10 @@ socialDocRef.onSnapshot(doc => {
   updateSocialAnchor(socialTelegramA, data.telegram);
 
   if(currentUserUid){
-    inputWhatsapp.value  = data.whatsapp  || "";
-    inputTiktok.value    = data.tiktok    || "";
-    inputInstagram.value = data.instagram || "";
-    inputTelegram.value  = data.telegram  || "";
+    if(inputWhatsapp) inputWhatsapp.value = data.whatsapp || "";
+    if(inputTiktok) inputTiktok.value = data.tiktok || "";
+    if(inputInstagram) inputInstagram.value = data.instagram || "";
+    if(inputTelegram) inputTelegram.value = data.telegram || "";
   }
 });
 
@@ -204,19 +230,20 @@ changesRef
     recentChangesList.innerHTML = html;
   });
 
-
 // --- RENDER TOPICS ---
 function renderTopics(){
-  const q = searchInput.value.trim().toLowerCase();
+  if(!topicsContainer) return;
+  const q = (searchInput?.value || '').trim().toLowerCase();
   topicsContainer.innerHTML = "";
 
   const filtered = allTopics.filter(t => {
+    const titleLower = (t.title || '').toLowerCase();
     if(currentFilterSpecialty === "Todos"){
       if(t.specialty === "Acceso gratuito limitado") return false;
-      return !q || t.title.toLowerCase().includes(q);
+      return !q || titleLower.includes(q) || (t.specialty || '').toLowerCase().includes(q);
     }
-    return t.specialty === currentFilterSpecialty &&
-          (!q || t.title.toLowerCase().includes(q));
+    return (t.specialty || '') === currentFilterSpecialty &&
+          (!q || titleLower.includes(q));
   });
 
   if(filtered.length === 0){
@@ -229,8 +256,8 @@ function renderTopics(){
     card.className = "topic";
 
     card.innerHTML = `
-      <div class="specialty">${t.specialty}</div>
-      <h4>${t.title}</h4>
+      <div class="specialty">${escapeHtml(t.specialty || '')}</div>
+      <h4>${escapeHtml(t.title || '')}</h4>
       <div class="links"></div>
     `;
 
@@ -238,7 +265,7 @@ function renderTopics(){
 
     if(Array.isArray(t.links)){
       t.links.forEach(l => {
-        if(l?.url){
+        if(l && l.url){
           const a = document.createElement("a");
           a.className = "link-btn";
           a.textContent = l.label || "Abrir";
@@ -261,6 +288,11 @@ function renderTopics(){
   });
 }
 
+// safe escapeHtml (small util)
+function escapeHtml(s){
+  if(!s) return '';
+  return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]);
+}
 
 // --- CONTADORES ---
 function updateCounters(){
@@ -285,31 +317,48 @@ function updateCounters(){
   menuItems.forEach(btn => {
     const sp = btn.dataset.specialty;
     if(sp in counts){
-      btn.textContent = `${sp} (${counts[sp]})`;
+      // preserve structure: label + count span if exists
+      const countSpan = btn.querySelector('.count');
+      if(countSpan) {
+        countSpan.textContent = `(${counts[sp]})`;
+      } else {
+        btn.textContent = `${sp} (${counts[sp]})`;
+      }
     }
   });
 }
 
-
-// --- ADMIN MODAL ---
-adminBtn.addEventListener("click", ()=>{
+// --- ADMIN MODAL (open/close) ---
+adminBtn?.addEventListener("click", ()=>{
+  if(!adminModal) return;
   adminModal.classList.remove("hidden");
   adminModal.setAttribute("aria-hidden","false");
+
+  // If user is already authenticated, show panel; otherwise show auth form
+  if(currentUserUid){
+    if(adminPanel) adminPanel.classList.remove("hidden");
+    const authDiv = document.getElementById("admin-auth");
+    if(authDiv) authDiv.classList.add("hidden");
+  } else {
+    if(adminPanel) adminPanel.classList.add("hidden");
+    const authDiv = document.getElementById("admin-auth");
+    if(authDiv) authDiv.classList.remove("hidden");
+  }
 });
 
-closeModalBtn.addEventListener("click", ()=>{
+closeModalBtn?.addEventListener("click", ()=>{
+  if(!adminModal) return;
   adminModal.classList.add("hidden");
   adminModal.setAttribute("aria-hidden","true");
 });
 
-
 // --- LOGIN ADMIN ---
-adminLoginBtn.addEventListener("click", async ()=>{
-  const email = adminEmailInput.value.trim();
-  const pass  = adminPassInput.value;
+adminLoginBtn?.addEventListener("click", async ()=>{
+  const email = (adminEmailInput?.value || '').trim();
+  const pass  = (adminPassInput?.value || '');
 
   if(!email || !pass){
-    adminStatus.textContent = "Ingresa email y contraseña";
+    if(adminStatus) adminStatus.textContent = "Ingresa email y contraseña";
     return;
   }
 
@@ -317,43 +366,64 @@ adminLoginBtn.addEventListener("click", async ()=>{
     const cred = await auth.signInWithEmailAndPassword(email, pass);
     currentUserUid = cred.user.uid;
 
-    adminStatus.textContent = "Autenticado ✓";
-    adminPanel.classList.remove("hidden");
-    document.getElementById("admin-auth").classList.add("hidden");
+    if(adminStatus) adminStatus.textContent = "Autenticado ✓";
+    if(adminPanel) adminPanel.classList.remove("hidden");
+    const authDiv = document.getElementById("admin-auth");
+    if(authDiv) authDiv.classList.add("hidden");
+
+    // populate social inputs after login
+    try {
+      const docSnap = await socialDocRef.get();
+      const data = docSnap.exists ? docSnap.data() : {};
+      if(inputWhatsapp) inputWhatsapp.value = data.whatsapp || "";
+      if(inputTiktok) inputTiktok.value = data.tiktok || "";
+      if(inputInstagram) inputInstagram.value = data.instagram || "";
+      if(inputTelegram) inputTelegram.value = data.telegram || "";
+    } catch(e){
+      console.warn('No se pudo leer social config tras login', e);
+    }
+
+    // re-render so edit buttons appear
+    renderTopics();
 
   } catch(e){
-    adminStatus.textContent = "Error: " + e.message;
+    if(adminStatus) adminStatus.textContent = "Error: " + e.message;
   }
 });
 
-
 // --- LOGOUT ---
-logoutBtn.addEventListener("click", async ()=>{
-  await auth.signOut();
+logoutBtn?.addEventListener("click", async ()=>{
+  try {
+    await auth.signOut();
+  } catch(e){ console.error('Sign out err', e); }
 
   currentUserUid = null;
-  adminPanel.classList.add("hidden");
-  document.getElementById("admin-auth").classList.remove("hidden");
+  if(adminPanel) adminPanel.classList.add("hidden");
+  const authDiv = document.getElementById("admin-auth");
+  if(authDiv) authDiv.classList.remove("hidden");
 
-  adminModal.classList.add("hidden");
+  // close modal to avoid leaving admin UI visible
+  if(adminModal) adminModal.classList.add("hidden");
+
+  // re-render to hide edit buttons
+  renderTopics();
 });
 
+// --- AGREGAR MÁS ENLACES (botón “Agregar enlace”) ---
+if(addLinkBtn && linksArea){
+  addLinkBtn.addEventListener("click", ()=> {
+    const row = document.createElement("div");
+    row.className = "link-row";
+    row.innerHTML = `
+      <input class="link-label" placeholder="Etiqueta" />
+      <input class="link-url" placeholder="https://..." />
+    `;
+    linksArea.appendChild(row);
+  });
+}
 
-// --- AQUI VIENE LA REPARACIÓN QUE PEDISTE ---
-// --- AGREGAR MÁS ENLACES (BOTÓN “Agregar enlace”) ---
-addLinkBtn.addEventListener("click", ()=> {
-  const row = document.createElement("div");
-  row.className = "link-row";
-
-  row.innerHTML = `
-    <input class="link-label" placeholder="Etiqueta" />
-    <input class="link-url" placeholder="https://..." />
-  `;
-
-  linksArea.appendChild(row);
-});
 // --- GUARDAR / EDITAR TEMAS ---
-temaForm.addEventListener("submit", async e => {
+temaForm?.addEventListener("submit", async e => {
   e.preventDefault();
 
   if(!currentUserUid){
@@ -361,20 +431,23 @@ temaForm.addEventListener("submit", async e => {
     return;
   }
 
-const social = {
-  whatsapp: document.getElementById("tema-social-whatsapp").value.trim(),
-  tiktok: document.getElementById("tema-social-tiktok").value.trim(),
-  instagram: document.getElementById("tema-social-instagram").value.trim(),
-  telegram: document.getElementById("tema-social-telegram").value.trim()
-};
+  // read optional per-tema social inputs only if exist (defensivo)
+  const social = {
+    whatsapp: safeGetValue("tema-social-whatsapp"),
+    tiktok:   safeGetValue("tema-social-tiktok"),
+    instagram:safeGetValue("tema-social-instagram"),
+    telegram: safeGetValue("tema-social-telegram")
+  };
 
-  const title = temaTitle.value.trim();
-  const specialty = temaSpecialty.value;
+  const title = (temaTitle?.value || '').trim();
+  const specialty = (temaSpecialty?.value || '');
   const links = [];
 
   document.querySelectorAll("#links-area .link-row").forEach(r => {
-    const label = r.querySelector(".link-label").value.trim();
-    const url   = r.querySelector(".link-url").value.trim();
+    const labEl = r.querySelector(".link-label");
+    const urlEl = r.querySelector(".link-url");
+    const label = labEl ? (labEl.value || '').trim() : '';
+    const url   = urlEl ? (urlEl.value || '').trim() : '';
     if(url){
       links.push({ label: label || "Abrir", url });
     }
@@ -386,31 +459,12 @@ const social = {
   }
 
   try {
-if(editingDocId){
-  await db.collection("temas").doc(editingDocId).update({
-    title, specialty, links, social
-  });
-  await changesRef.add({
-    action: `Editado: ${title}`,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  });
-} else {
-  await db.collection("temas").add({
-    title, specialty, links, social,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  await changesRef.add({
-    action: `Agregado: ${title}`,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  });
-}
-
     if(editingDocId){
+      // update single time (no duplicates)
       await db.collection("temas").doc(editingDocId).update({
-        title, specialty, links
+        title, specialty, links, social
       });
 
-      // Registrar modificación
       await changesRef.add({
         action: `Editado: ${title}`,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -418,12 +472,11 @@ if(editingDocId){
 
       alert("Tema actualizado");
     } else {
-      const docRef = await db.collection("temas").add({
-        title, specialty, links,
+      await db.collection("temas").add({
+        title, specialty, links, social,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      // Registrar nuevo tema
       await changesRef.add({
         action: `Agregado: ${title}`,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -439,49 +492,55 @@ if(editingDocId){
   }
 });
 
-
 // --- EDITAR EXISTENTE ---
 function openEditorWithTopic(t){
+  if(!adminModal) return;
   adminModal.classList.remove("hidden");
   adminModal.setAttribute("aria-hidden","false");
 
-  adminPanel.classList.remove("hidden");
-  document.getElementById("admin-auth").classList.add("hidden");
+  if(adminPanel) adminPanel.classList.remove("hidden");
+  const authDiv = document.getElementById("admin-auth");
+  if(authDiv) authDiv.classList.add("hidden");
 
-  temaTitle.value = t.title;
-  temaSpecialty.value = t.specialty;
+  temaTitle.value = t.title || '';
+  temaSpecialty.value = t.specialty || '';
 
-document.getElementById("tema-social-whatsapp").value = t.social?.whatsapp || "";
-document.getElementById("tema-social-tiktok").value   = t.social?.tiktok || "";
-document.getElementById("tema-social-instagram").value= t.social?.instagram || "";
-document.getElementById("tema-social-telegram").value = t.social?.telegram || "";
+  // If tema social inputs exist, populate them defensively
+  const tsw = document.getElementById("tema-social-whatsapp");
+  const tst = document.getElementById("tema-social-tiktok");
+  const tsi = document.getElementById("tema-social-instagram");
+  const tte = document.getElementById("tema-social-telegram");
+  if(tsw) tsw.value = t.social?.whatsapp || "";
+  if(tst) tst.value = t.social?.tiktok   || "";
+  if(tsi) tsi.value = t.social?.instagram|| "";
+  if(tte) tte.value = t.social?.telegram || "";
 
-  linksArea.innerHTML = "";
-  (t.links || []).forEach(l => {
-    const row = document.createElement("div");
-    row.className = "link-row";
-
-    row.innerHTML = `
-      <input class="link-label" value="${l.label || ""}" />
-      <input class="link-url" value="${l.url   || ""}" />
-    `;
-
-    linksArea.appendChild(row);
-  });
+  // render links
+  if(linksArea) {
+    linksArea.innerHTML = "";
+    (t.links || []).forEach(l => {
+      const row = document.createElement("div");
+      row.className = "link-row";
+      row.innerHTML = `
+        <input class="link-label" value="${escapeHtml(l.label || '')}" />
+        <input class="link-url" value="${escapeHtml(l.url || '')}" />
+      `;
+      linksArea.appendChild(row);
+    });
+  }
 
   editingDocId = t.id;
-  deleteTemaBtn.classList.remove("hidden");
+  if(deleteTemaBtn) deleteTemaBtn.classList.remove("hidden");
 }
 
-
 // --- ELIMINAR TEMA ---
-deleteTemaBtn.addEventListener("click", async ()=>{
+deleteTemaBtn?.addEventListener("click", async ()=>{
   if(!editingDocId) return;
 
   if(!confirm("¿Eliminar tema permanentemente?")) return;
 
   try {
-    const deletedTitle = temaTitle.value.trim();
+    const deletedTitle = (temaTitle?.value || '').trim();
 
     await db.collection("temas").doc(editingDocId).delete();
 
@@ -499,23 +558,24 @@ deleteTemaBtn.addEventListener("click", async ()=>{
   }
 });
 
-
 // --- RESETEAR FORM ---
 function resetForm(){
-  temaForm.reset();
-  linksArea.innerHTML = `
+  if(temaForm) temaForm.reset();
+  if(linksArea) linksArea.innerHTML = `
     <div class="link-row">
       <input class="link-label" placeholder="Etiqueta" />
       <input class="link-url" placeholder="https://..." />
     </div>
   `;
   editingDocId = null;
-  deleteTemaBtn.classList.add("hidden");
-  adminModal.classList.add("hidden");
+  if(deleteTemaBtn) deleteTemaBtn.classList.add("hidden");
+  if(adminModal) adminModal.classList.add("hidden");
+
+  // re-render topics to reflect changes
+  renderTopics();
 }
 
-
-// --- GUARDAR LINKS SOCIALES ---
+// --- GUARDAR LINKS SOCIALES desde panel admin ---
 async function saveSocialLinks(obj){
   try {
     await socialDocRef.set(obj, { merge: true });
@@ -540,7 +600,6 @@ saveTiktokBtn?.addEventListener("click",   ()=> saveSocialLinks({ tiktok:    inp
 saveInstagramBtn?.addEventListener("click",()=> saveSocialLinks({ instagram: inputInstagram.value.trim() }));
 saveTelegramBtn?.addEventListener("click", ()=> saveSocialLinks({ telegram:  inputTelegram.value.trim() }));
 
-
 // --- BORRAR LINKS SOCIALES ---
 async function deleteSocialField(field, input){
   try {
@@ -551,7 +610,7 @@ async function deleteSocialField(field, input){
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    input.value = "";
+    if(input) input.value = "";
     alert("Eliminado");
   } catch(e){
     alert("Error: " + e.message);
@@ -563,20 +622,25 @@ clearTiktokBtn?.addEventListener("click",   ()=> deleteSocialField("tiktok",    
 clearInstagramBtn?.addEventListener("click",()=> deleteSocialField("instagram", inputInstagram));
 clearTelegramBtn?.addEventListener("click", ()=> deleteSocialField("telegram",  inputTelegram));
 
-
 // --- AUTH OBSERVER ---
+// NOTE: we no longer auto-show the admin panel on auth change to avoid "entering admin mode" unexpectedly.
+// We keep currentUserUid updated and re-render topics (so edit buttons appear when user is signed in).
 auth.onAuthStateChanged(user=>{
   if(user){
     currentUserUid = user.uid;
-    adminPanel.classList.remove("hidden");
-    document.getElementById("admin-auth").classList.add("hidden");
   } else {
     currentUserUid = null;
-    adminPanel.classList.add("hidden");
-    document.getElementById("admin-auth").classList.remove("hidden");
   }
-});
 
+  // keep admin modal hidden by default; open it only via admin button or openEditorWithTopic
+  if(adminModal) {
+    adminModal.classList.add('hidden');
+    adminModal.setAttribute('aria-hidden','true');
+  }
+
+  // re-render topics so edit buttons appear/disappear
+  renderTopics();
+});
 
 // --- COUNTDOWN ---
 function updateCountdown(){
