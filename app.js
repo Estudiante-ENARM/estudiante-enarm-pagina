@@ -414,10 +414,14 @@ if(addLinkBtn && linksArea){
   addLinkBtn.addEventListener("click", ()=> {
     const row = document.createElement("div");
     row.className = "link-row";
-    row.innerHTML = `
-      <input class="link-label" placeholder="Etiqueta" />
-      <input class="link-url" placeholder="https://..." />
-    `;
+    row.setAttribute("draggable", "true");
+
+row.innerHTML = `
+  <span class="drag-handle" style="cursor:grab; padding:4px 8px;">☰</span>
+  <input class="link-label" placeholder="Etiqueta" />
+  <input class="link-url" placeholder="https://..." />
+`;
+
     linksArea.appendChild(row);
   });
 }
@@ -521,10 +525,14 @@ function openEditorWithTopic(t){
     (t.links || []).forEach(l => {
       const row = document.createElement("div");
       row.className = "link-row";
-      row.innerHTML = `
-        <input class="link-label" value="${escapeHtml(l.label || '')}" />
-        <input class="link-url" value="${escapeHtml(l.url || '')}" />
-      `;
+      row.setAttribute("draggable", "true");
+
+row.innerHTML = `
+  <span class="drag-handle" style="cursor:grab; padding:4px 8px;">☰</span>
+  <input class="link-label" value="${escapeHtml(l.label || '')}" />
+  <input class="link-url" value="${escapeHtml(l.url || '')}" />
+`;
+
       linksArea.appendChild(row);
     });
   }
@@ -640,6 +648,43 @@ auth.onAuthStateChanged(user=>{
 
   // re-render topics so edit buttons appear/disappear
   renderTopics();
+});
+
+// -----------------------------
+//  DRAG & DROP PARA ORDENAR ENLACES
+// -----------------------------
+let draggedRow = null;
+
+document.addEventListener("dragstart", e => {
+  const row = e.target.closest(".link-row");
+  if (!row) return;
+  draggedRow = row;
+  row.style.opacity = "0.4";
+});
+
+document.addEventListener("dragend", e => {
+  if (draggedRow) draggedRow.style.opacity = "1";
+  draggedRow = null;
+});
+
+document.addEventListener("dragover", e => {
+  const row = e.target.closest(".link-row");
+  if (!row || row === draggedRow) return;
+
+  e.preventDefault(); // necesario para soltar
+
+  const bounding = row.getBoundingClientRect();
+  const offset = e.clientY - bounding.top;
+
+  const middle = bounding.height / 2;
+
+  if (offset > middle) {
+    // mover debajo
+    row.parentNode.insertBefore(draggedRow, row.nextSibling);
+  } else {
+    // mover arriba
+    row.parentNode.insertBefore(draggedRow, row);
+  }
 });
 
 // --- COUNTDOWN ---
