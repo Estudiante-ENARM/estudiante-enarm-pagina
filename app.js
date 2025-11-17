@@ -728,3 +728,4 @@ if (buyAccessBtn) {
     window.open(`https://wa.me/${telefono}?text=${mensaje}`, "_blank");
   });
 }
+
