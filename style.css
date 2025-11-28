@@ -323,30 +323,73 @@ body {
   gap: 10px;
   padding: 10px 14px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(15, 23, 42, 0.98);
-  color: var(--text-invert);
+  background: var(--bg-header);
+  color: var(--text-main);
   z-index: 30;
 }
 
+/* Botón hamburguesa muy visible (claro y oscuro) */
 .menu-hamburger {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  border: none;
-  background: rgba(15, 23, 42, 0.9);
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 2px solid var(--primary);
+  background: var(--bg-elevated);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  color: var(--primary);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.12s ease;
 }
 
+.menu-hamburger:hover {
+  background: var(--primary);
+  color: var(--text-invert);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.55);
+  transform: translateY(-1px);
+}
+
+/* Icono de hamburguesa hecho con CSS */
+.burger-line {
+  position: relative;
+  width: 20px;
+  height: 2px;
+  border-radius: 999px;
+  background-color: currentColor;
+}
+
+.burger-line::before,
+.burger-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 20px;
+  height: 2px;
+  border-radius: 999px;
+  background-color: currentColor;
+}
+
+.burger-line::before {
+  top: -6px;
+}
+
+.burger-line::after {
+  top: 6px;
+}
+
+/* Por si queda alguna imagen vieja, la ocultamos */
 .menu-icon-btn {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  display: block;
+  display: none !important;
 }
 
+/* Logo y título móvil */
 .mobile-logo {
   display: flex;
   align-items: center;
