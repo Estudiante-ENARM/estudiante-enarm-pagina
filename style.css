@@ -1,6 +1,6 @@
 /* ===================================================
-   VARIABLES DE COLOR (LIGHT / DARK) - ESTILO UNIFICADO
-   Basado en la página bonita (student.html)
+   VARIABLES DE COLOR (LIGHT / DARK)
+   Basado en el estilo premium de student.html
 =================================================== */
 
 :root {
@@ -36,7 +36,7 @@
 
   --transition-fast: 0.18s ease-out;
 
-  /* Compatibilidad con la página anterior de TEMAS */
+  /* Compatibilidad con nombres antiguos de la página de TEMAS */
   --sidebar-width: 260px;
   --bg-color: var(--bg-body);
   --sidebar-bg: var(--bg-sidebar);
@@ -93,12 +93,19 @@ body {
   min-height: 100vh;
   display: flex;
   height: 100vh;
-  overflow: hidden; /* Escritorio: el scroll lo maneja <main> */
+  overflow: hidden; /* En escritorio el scroll va en <main> */
 }
 
 /* Utilidades */
 .hidden {
   display: none !important;
+}
+
+.flex-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
 /* ===================================================
@@ -128,29 +135,30 @@ body {
 /* Logo area */
 #logo-area {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
   margin-bottom: 12px;
   cursor: pointer;
+  gap: 8px;
 }
 
 #logo-img {
-  width: 76px;
-  height: auto;
-  margin-bottom: 6px;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
   filter: drop-shadow(0 8px 16px rgba(15, 23, 42, 0.45));
 }
 
 .logo-text {
   font-weight: 600;
   letter-spacing: 0.2px;
-  font-size: 16px;
+  font-size: 15px;
   color: var(--text-invert);
 }
 
-/* Ocultar textos en modo sidebar cerrado */
+/* Cuando el sidebar está cerrado, ocultamos el texto pero NO el logo */
 #sidebar.closed .logo-text {
   display: none;
 }
@@ -163,9 +171,11 @@ body {
   gap: 6px;
   margin-top: 14px;
   padding-right: 4px;
+  max-height: 50vh;
+  overflow-y: auto;
 }
 
-/* Scroll fino si se llena */
+/* Scroll fino en el nav */
 #sidebar nav::-webkit-scrollbar {
   width: 6px;
 }
@@ -206,12 +216,16 @@ body {
   box-shadow: 0 10px 20px rgba(37, 99, 235, 0.35);
 }
 
-/* Contador de temas por categoría */
+/* Contador de temas por categoría - ALTO CONTRASTE */
 .menu-item .count {
   margin-left: 6px;
-  font-weight: 600;
-  font-size: 12px;
-  opacity: 0.9;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 11px;
+  background: rgba(251, 191, 36, 0.16); /* amarillo suave */
+  color: #facc15;                        /* amarillo intenso */
+  opacity: 1;
 }
 
 /* Últimos cambios dentro del sidebar */
@@ -219,16 +233,23 @@ body {
   margin-top: 14px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.88);
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.65);
+  background: rgba(15, 23, 42, 0.96); /* casi negro */
+  border: 1px solid rgba(148, 163, 184, 0.85);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.85);
   font-size: 12px;
-  color: #e5e7eb;
+  color: #f9fafb;
 }
 
 #recent-changes strong {
   display: block;
   margin-bottom: 4px;
+  color: #bfdbfe; /* azul claro para título */
+}
+
+#recent-changes span,
+#recent-changes br,
+#recent-changes p {
+  color: #e5e7eb;
 }
 
 /* Social icons (barra inferior) */
@@ -323,8 +344,8 @@ body {
   gap: 10px;
   padding: 10px 14px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
-  background: var(--bg-header);
-  color: var(--text-main);
+  background: var(--bg-sidebar);   /* oscuro, buen contraste */
+  color: var(--text-invert);
   z-index: 30;
 }
 
@@ -384,12 +405,12 @@ body {
   top: 6px;
 }
 
-/* Por si queda alguna imagen vieja, la ocultamos */
+/* Por si queda alguna imagen vieja de icono, la ocultamos */
 .menu-icon-btn {
   display: none !important;
 }
 
-/* Logo y título móvil */
+/* Logo y título móvil (si los usas en el header) */
 .mobile-logo {
   display: flex;
   align-items: center;
@@ -647,7 +668,10 @@ footer {
   box-shadow: 0 0 0 1px var(--primary-soft);
 }
 
-/* Botones genéricos dentro del modal */
+/* ===================================================
+   BOTONES GENERALES
+=================================================== */
+
 .btn {
   padding: 8px 14px;
   border-radius: 999px;
@@ -706,7 +730,7 @@ footer {
   body {
     flex-direction: column;
     height: auto;
-    overflow-y: auto;   /* ← Fix: permite scroll vertical en móvil */
+    overflow-y: auto;   /* ← Permite scroll vertical en móvil */
     overflow-x: hidden; /* ← Evita scroll horizontal feo */
   }
 
@@ -750,7 +774,6 @@ footer {
     display: flex;
     position: sticky;
     top: 0;
-    background: rgba(15, 23, 42, 0.98);
   }
 
   main {
@@ -782,19 +805,10 @@ footer {
 }
 
 @media (max-width: 420px) {
-  .logo-text {
-    display: none;
-  }
-  .mobile-title {
-    font-size: 15px;
-  }
+  /* Mantenemos visible el texto Estudiante ENARM; solo ajustamos tamaños */
   .menu-hamburger {
-    width: 40px;
-    height: 40px;
-  }
-  .menu-item {
-    padding: 10px;
-    font-size: 14px;
+    width: 44px;
+    height: 44px;
   }
   .search-wrapper {
     padding: 9px 10px;
