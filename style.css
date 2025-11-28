@@ -93,7 +93,7 @@ body {
   min-height: 100vh;
   display: flex;
   height: 100vh;
-  overflow: hidden;
+  overflow: hidden; /* Escritorio: el scroll lo maneja <main> */
 }
 
 /* Utilidades */
@@ -663,6 +663,8 @@ footer {
   body {
     flex-direction: column;
     height: auto;
+    overflow-y: auto;   /* ← Fix: permite scroll vertical en móvil */
+    overflow-x: hidden; /* ← Evita scroll horizontal feo */
   }
 
   /* Sidebar como drawer */
