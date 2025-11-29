@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Estudiante ENARM</title>
 
+  <!-- Favicon (icono de pestaña) -->
+  <link rel="icon" type="image/png" href="logo.png" />
+  <!-- Opcional: si creas favicon.ico en la raíz, el navegador ya no marcará 404 -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
   <!-- Fuente moderna para look premium -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -39,13 +44,35 @@
 
   <!-- 🔹 Banner simple de cookies -->
   <style>
-    #cookie-banner{position:fixed;bottom:20px;left:20px;right:20px;
-      background:#fff;border:1px solid #ddd;padding:12px;border-radius:8px;
-      box-shadow:0 6px 18px rgba(0,0,0,0.08);display:none;align-items:center;gap:12px;
-      font-family:'Inter',sans-serif;font-size:14px;z-index:9999}
-    #cookie-banner button{background:#0E5E9B;color:#fff;border:none;padding:8px 12px;
-      border-radius:6px;cursor:pointer}
-    #cookie-banner .cookie-text{flex:1;color:#222}
+    #cookie-banner{
+      position:fixed;
+      bottom:20px;
+      left:20px;
+      right:20px;
+      background:#fff;
+      border:1px solid #ddd;
+      padding:12px;
+      border-radius:8px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.08);
+      display:none;
+      align-items:center;
+      gap:12px;
+      font-family:'Inter',sans-serif;
+      font-size:14px;
+      z-index:9999
+    }
+    #cookie-banner button{
+      background:#0E5E9B;
+      color:#fff;
+      border:none;
+      padding:8px 12px;
+      border-radius:6px;
+      cursor:pointer
+    }
+    #cookie-banner .cookie-text{
+      flex:1;
+      color:#222
+    }
     /* small helper to keep counts aligned in sidebar */
     .menu-item .count {
       margin-left: 8px;
@@ -87,7 +114,7 @@
   <div id="mobile-overlay" class="hidden"></div>
 
   <!-- Barra lateral / Drawer -->
-<aside id="sidebar" aria-hidden="false">
+  <aside id="sidebar" aria-hidden="false">
     <div id="logo-area">
       <img id="logo-img" src="logo-light.png" alt="Logo" />
       <span class="logo-text">Estudiante ENARM</span>
@@ -120,16 +147,15 @@
       </button>
     </nav>
 
-<!-- BOTÓN DISCRETO DE ACCESO COMPLETO -->
-<button id="buy-access-btn">Acceso completo</button>
+    <!-- BOTÓN DISCRETO DE ACCESO COMPLETO -->
+    <button id="buy-access-btn">Acceso completo</button>
 
     <!-- ÚLTIMAS 3 MODIFICACIONES -->
-<div id="recent-changes" aria-live="polite" style="margin-top:14px;padding:10px;">
-</div>
+    <div id="recent-changes" aria-live="polite" style="margin-top:14px;padding:10px;">
+    </div>
 
-<!-- Iconos sociales (orden y nombres preservados) -->
-<div id="social-icons" aria-hidden="false" style="margin-top:14px;">
-
+    <!-- Iconos sociales (orden y nombres preservados) -->
+    <div id="social-icons" aria-hidden="false" style="margin-top:14px;">
       <a id="social-whatsapp" class="social-link" href="#" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
         <img src="icono.1.png" alt="WhatsApp" />
       </a>
@@ -149,10 +175,10 @@
 
   <!-- Header & main -->
   <div id="app-shell">
-  <header id="mobile-header">
-  <button id="menu-btn" class="menu-hamburger" aria-label="Abrir menú">
-    <span class="burger-line"></span>
-  </button>
+    <header id="mobile-header">
+      <button id="menu-btn" class="menu-hamburger" aria-label="Abrir menú">
+        <span class="burger-line"></span>
+      </button>
 
       <div class="mobile-logo">
         <img id="logo-img-mobile" src="logo-light.png" alt="Logo" />
@@ -166,7 +192,9 @@
     <main>
       <div class="main-inner">
         <div class="search-wrapper">
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16a6.471 6.471 0 004.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM10 15a5 5 0 110-10 5 5 0 010 10z"/></svg>
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16a6.471 6.471 0 004.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM10 15a5 5 0 110-10 5 5 0 010 10z"/>
+          </svg>
           <input type="text" id="search" placeholder="Buscar tema..." />
         </div>
 
@@ -259,7 +287,9 @@
             <button id="save-telegram" class="save-social-btn">Guardar</button>
             <button id="clear-telegram" class="clear-social-btn">Eliminar</button>
           </div>
-          <p style="font-size:12px;color:gray;margin-top:8px;">Los enlaces se guardan en Firestore en la colección <code>social_links</code>, documento <code>config</code>.</p>
+          <p style="font-size:12px;color:gray;margin-top:8px;">
+            Los enlaces se guardan en Firestore en la colección <code>social_links</code>, documento <code>config</code>.
+          </p>
         </div>
 
       </div>
