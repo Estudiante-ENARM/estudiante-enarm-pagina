@@ -920,3 +920,32 @@ footer {
     transform: translateY(-2px);
   }
 }
+/* ===========================================
+   AJUSTE FINAL DARK MODE: BOTONES DE LINKS
+   - Más opacos
+   - Azul discreto
+=========================================== */
+@media (prefers-color-scheme: dark) {
+  .link-btn {
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.96),   /* casi negro */
+      rgba(30, 64, 175, 0.60)   /* azul oscuro suave */
+    );
+    color: #cbd5f5;                         /* azul muy claro, no blanco puro */
+    border: 1px solid rgba(37, 99, 235, 0.7);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+  }
+
+  .link-btn:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(30, 64, 175, 0.9),
+      rgba(37, 99, 235, 0.95)
+    );
+    color: #e5edff;
+    border-color: #93c5fd;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
+    transform: translateY(-2px);
+  }
+}
