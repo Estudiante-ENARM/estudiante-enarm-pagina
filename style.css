@@ -821,3 +821,45 @@ footer {
     padding-bottom: 56px;
   }
 }
+
+/* ===========================================
+   ARREGLO DEFINITIVO: CONTADOR DE TEMAS
+   (ALTO CONTRASTE EN MODO CLARO Y OSCURO)
+=========================================== */
+
+#sidebar .menu-item .count {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 11px;
+  background: var(--primary);   /* Píldora azul fuerte */
+  color: #ffffff;              /* Texto blanco */
+  opacity: 1;
+}
+
+/* ===========================================
+   ARREGLO DEFINITIVO: RECUADRO "ÚLTIMOS CAMBIOS"
+   TEXTO MUY LEGIBLE EN MODO CLARO
+=========================================== */
+
+#recent-changes {
+  background: #020617;                               /* Fondo negro-azulado sólido */
+  border: 1px solid rgba(148, 163, 184, 0.9);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.85);
+  font-size: 13px;
+  color: #f9fafb;                                    /* Texto base blanco */
+}
+
+/* Forzamos el color de TODO el contenido dentro para que no se quede gris tenue */
+#recent-changes * {
+  color: #e5e7eb !important;                         /* Gris muy claro, alto contraste */
+}
+
+/* Título "Últimos cambios" más vistoso */
+#recent-changes strong {
+  color: #60a5fa !important;                         /* Azul claro brillante */
+  font-weight: 700;
+}
