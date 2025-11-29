@@ -863,3 +863,21 @@ footer {
   color: #60a5fa !important;                         /* Azul claro brillante */
   font-weight: 700;
 }
+/* ===========================================
+   LINK-BTN EN MODO OSCURO
+   Texto y borde blancos, más visibles
+=========================================== */
+@media (prefers-color-scheme: dark) {
+  .link-btn {
+    background: transparent;                          /* sin fondo azul */
+    color: #f9fafb;                                   /* texto blanco */
+    border: 1px solid #f9fafb;                        /* borde blanco bien marcado */
+    box-shadow: 0 0 0 1px rgba(249, 250, 251, 0.30);  /* halo suave blanco */
+  }
+
+  .link-btn:hover {
+    background: rgba(249, 250, 251, 0.10);            /* leve fondo claro al pasar el mouse */
+    box-shadow: 0 0 0 1px rgba(249, 250, 251, 0.55);
+    transform: translateY(-2px);
+  }
+}
